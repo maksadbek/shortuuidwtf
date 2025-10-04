@@ -1,88 +1,118 @@
-import Image from "next/image";
+"use client"
+
+import shortUUID from 'short-uuid';
+import React from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [input, setInput] = React.useState("");
+  const [copied, setCopied] = React.useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const shortUUIDTranslator = shortUUID();
+
+  function translate(input: string) {
+    if (input === "") {
+      return "";
+    }
+
+    try {
+      return shortUUIDTranslator.toUUID(input);
+    } catch (error) {
+      console.log(error);
+      return "";
+    }
+  }
+
+  function toShort(input: string) {
+    if (input === "") {
+      return "";
+    }
+
+    try {
+      return shortUUIDTranslator.fromUUID(input);
+    } catch (e) {
+      console.log(e);
+      return "";
+    }
+  }
+
+  const fullUUID = translate(input);
+  const shortId = toShort(input);
+
+  function copy(value: string, label: string) {
+    if (!value) return;
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(label);
+      setTimeout(() => setCopied(null), 1200);
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <header className="mb-8 text-center sm:text-left">
+          <h1 className="text-3xl font-semibold tracking-tight">Short UUID Converter</h1>
+          <p className="mt-2 text-sm text-slate-500">Paste either a Short UUID or a full UUID. We will convert both ways.</p>
+        </header>
+
+        <div className="flex flex-col gap-4">
+          <label htmlFor="converter-input" className="text-sm font-medium text-slate-700">
+            Input
+          </label>
+          <input
+            id="converter-input"
+            type="text"
+            placeholder="Enter Short UUID or full UUID..."
+            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+            value={input}
+            onChange={(e) => setInput(e.target.value.trim())}
+          />
+          <p className="text-xs text-slate-500">Tip: You can paste either format; results appear below when valid.</p>
         </div>
+
+        <section className="mt-8 grid gap-4 sm:grid-cols-2">
+          {/* Full UUID card */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-slate-700">Full UUID</h2>
+              <button
+                type="button"
+                onClick={() => copy(fullUUID, "uuid")}
+                disabled={!fullUUID}
+                className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Copy full UUID"
+              >
+                {copied === "uuid" ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className="mt-2 min-h-[2.5rem] select-all break-all rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-800">
+              {fullUUID || <span className="text-slate-400">—</span>}
+            </div>
+          </div>
+
+          {/* Short UUID card */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-slate-700">Short UUID</h2>
+              <button
+                type="button"
+                onClick={() => copy(shortId, "short")}
+                disabled={!shortId}
+                className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Copy short UUID"
+              >
+                {copied === "short" ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className="mt-2 min-h-[2.5rem] select-all break-all rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-800">
+              {shortId || <span className="text-slate-400">—</span>}
+            </div>
+          </div>
+        </section>
+
+        <footer className="mt-10 text-center text-xs text-slate-400">
+          Built with <a href="https://www.npmjs.com/package/short-uuid">short-uuid</a>
+        </footer>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
